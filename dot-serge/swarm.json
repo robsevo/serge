@@ -1,0 +1,16 @@
+{
+  "_comment": "Swarm configuration. Edited by ~/.serge/swarm.sh (via the /swarm command) and read by swarm-brief.sh (UserPromptSubmit, tells the LEAD how to fan out) and swarm-doctrine.sh (SubagentStart, gives each subagent its rules). Hand-editing is fine; it is plain JSON. Nothing here costs a token while `enabled` is false.",
+  "enabled": true,
+  "_max_agents": "Most subagents to run at once. The lead is told this number; it is guidance to the model, not a hard cap the harness enforces. Free seats are rpm-limited and a wide fan-out is what trips Mistral's shared budget, so 3 is deliberate rather than timid.",
+  "max_agents": 3,
+  "_agents": "Which agent types the doctrine is injected for. '*' = all. Otherwise a hook matcher regex, e.g. 'reviewer|security|test'. This is passed to settings.json's SubagentStart matcher semantics, which match on agent_type.",
+  "agents": "*",
+  "_doctrine_file": "The mini-constitution each subagent receives. Edit it to change what the swarm believes. Keep it SHORT \u2014 it is prepended to every subagent's context, so its length is multiplied by the fan-out width.",
+  "doctrine_file": "~/.serge/swarm-doctrine.md",
+  "_brief_lead": "Whether the LEAD agent is also told it is in swarm mode (fan-out width, briefing rules). Turning this off leaves the doctrine in place for subagents but stops nudging the lead to parallelise.",
+  "brief_lead": true,
+  "measures": [
+    "no-speculation",
+    "persistence"
+  ]
+}

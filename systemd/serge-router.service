@@ -1,0 +1,19 @@
+[Unit]
+Description=Serge model router (LiteLLM proxy: DeepSeek + Qwen via OpenRouter + Bedrock cloud)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.serge/router.env
+ExecStart=%h/.local/bin/litellm --config %h/.serge/litellm.yaml --port 4000
+# Always-up so `serge` never waits on a cold boot: self-heal on ANY exit (crash,
+# OOM, or an unexpected clean stop), not just failures. A deliberate `systemctl
+# --user stop` still stops it (explicit stops aren't auto-restarted). The default
+# start-rate limit stays in force, so a genuinely broken config gives up after a
+# few tries instead of spin-looping.
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

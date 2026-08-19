@@ -1,0 +1,10 @@
+; Serge Godot 4 headless-testable game template.
+config_version=5
+
+[application]
+config/name="Serge Headless Game Template"
+config/features=PackedStringArray("4.7")
+run/main_scene=""
+
+[debug]
+gdscript/warnings/unused_parameter=0

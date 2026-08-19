@@ -1,0 +1,49 @@
+name: Proposal
+description: Suggest a new hook, skill, subagent or seat — or a change to an existing one.
+labels: ["proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Serge's guards exist because something went wrong once. The most
+        persuasive proposal names the failure it prevents.
+
+  - type: textarea
+    id: failure
+    attributes:
+      label: What goes wrong today
+      description: |
+        The concrete failure, ideally one you have seen. "The agent edits a file
+        it never read" beats "better safety". If you have a transcript or a
+        command that reproduces it, include it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: Which layer — a hook (which event?), a skill, a subagent, a seat, docs?
+    validations:
+      required: true
+
+  - type: textarea
+    id: cost
+    attributes:
+      label: What it costs
+      description: |
+        Does it make a model call? Add latency to every turn? Need a paid tier or
+        a new dependency? Serge runs on free tiers and a per-turn cost is a real
+        objection, so being upfront helps.
+    validations:
+      required: false
+
+  - type: textarea
+    id: false-positives
+    attributes:
+      label: When should it NOT fire?
+      description: |
+        A guard that fires when it shouldn't is worse than no guard — people
+        learn to ignore it. Where is the line?
+    validations:
+      required: false

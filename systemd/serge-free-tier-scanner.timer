@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the Serge free-tier scanner daily
+
+[Timer]
+OnCalendar=*-*-* 07:10:00
+RandomizedDelaySec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

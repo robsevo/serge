@@ -1,0 +1,288 @@
+<!--
+  Source of docs/HOW_SERGE_WORKS.pdf.
+  Re-render after meaningful behavior changes:
+    google-chrome-stable --headless --disable-gpu --no-pdf-header-footer \
+      --print-to-pdf=HOW_SERGE_WORKS.pdf how-serge-works.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How Serge Works — logic &amp; decision trees</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm; }
+  * { box-sizing: border-box; }
+  body { font: 10.5pt/1.5 "Segoe UI", "DejaVu Sans", Arial, sans-serif; color:#1a1d21; margin:0; }
+  h1 { font-size: 21pt; margin: 0 0 2mm; letter-spacing:.5px; }
+  .sub { color:#555; margin:0 0 6mm; font-size: 10.5pt; }
+  h2 { font-size: 13.5pt; margin: 8mm 0 2.5mm; padding: 1.2mm 2.5mm; background:#1f2937; color:#fff; border-radius:2px; page-break-after: avoid; }
+  h2 .n { color:#fbbf24; margin-right: 2mm; }
+  h2 code { background:transparent; color:#fde68a; }
+  h3 { font-size: 11pt; margin: 4mm 0 1.5mm; page-break-after: avoid; }
+  p { margin: 1.5mm 0; }
+  pre { font: 8.4pt/1.32 "JetBrains Mono","DejaVu Sans Mono",Consolas,monospace;
+        background:#f6f8fa; border:1px solid #d8dee4; border-left:3px solid #64748b;
+        border-radius:3px; padding: 2.5mm 3mm; margin: 2mm 0; white-space:pre; overflow:hidden;
+        page-break-inside: avoid; }
+  table { border-collapse: collapse; width:100%; margin: 2mm 0; font-size: 9.3pt; page-break-inside: avoid; }
+  th, td { border:1px solid #cbd5e1; padding: 1.1mm 2mm; text-align:left; vertical-align:top; }
+  th { background:#eef2f7; }
+  code { font: 9pt "JetBrains Mono","DejaVu Sans Mono",monospace; background:#eef2f7; padding: 0 1mm; border-radius:2px; }
+  .rule { background:#fffbeb; border:1px solid #f5deb0; border-left:3px solid #d97706; padding:2mm 3mm; border-radius:3px; margin:2.5mm 0; page-break-inside:avoid; }
+  .pb { page-break-before: always; }
+  .cols { display:flex; gap:5mm; } .cols > div { flex:1; }
+  .foot { margin-top:8mm; padding-top:2mm; border-top:1px solid #cbd5e1; color:#777; font-size:8.5pt; }
+  .free { color:#047857; font-weight:600; } .paid { color:#b91c1c; font-weight:600; }
+</style>
+</head>
+<body>
+
+<h1>HOW SERGE WORKS</h1>
+<p class="sub">Logic &amp; decision trees of the Serge coding agent — the free-tier hive with one personality. Snapshot: 2026-07-11. Runs on Linux, macOS (launchd), and Windows (WSL2 or Git Bash).</p>
+
+<h2><span class="n">1</span>What Serge is</h2>
+<p><b>Serge</b> is a terminal AI coding agent — a fork of <i>openclaude</i> (a Claude-Code-compatible engine) that
+runs entirely on <b>cloud free tiers</b> (Mistral, Google, Cerebras), wired together by a local
+<b>LiteLLM router</b> on <code>localhost:4000</code>. It behaves like a small <b>hive</b> of specialists:
+different models take different jobs, but every seat is injected with the same
+<b>constitution</b> (<code>~/.serge/CONSTITUTION.md</code>) — one personality, many brains.
+Around the engine sits a shell of <b>hooks</b>: session-start memory loaders, an end-of-turn
+verify→review→gate pipeline, a spend watchdog, and autonomous loops that run Serge headlessly on timers.</p>
+<div class="rule"><b>THE GOLDEN RULE:</b> plentiful seats by default; the scarce deep seat only when it earns it.
+The cheapest brain that CAN do the job — and nothing ships unchecked.</div>
+
+<h2><span class="n">2</span>The hive — seats &amp; roster</h2>
+<table>
+<tr><th>Seat name</th><th>Model (2026-07)</th><th>~Free quota</th><th>Role</th></tr>
+<tr><td><code>local-coder</code></td><td>Mistral Large</td><td class="free">~1B tok/month</td><td><b>Default workhorse</b> — ~90% of turns</td></tr>
+<tr><td><code>fast-coder</code></td><td>Devstral Medium</td><td class="free">(same Mistral pool)</td><td>The scout — codebase recon, burst fan-outs</td></tr>
+<tr><td><code>think-coder</code></td><td>Magistral Medium</td><td class="free">(same Mistral pool)</td><td>Deep reasoner — adversarial passes, /deepthink</td></tr>
+<tr><td><code>qwen-coder</code></td><td>gpt-oss-120b (Cerebras)</td><td class="free">~1M tok/day</td><td><b>The reviewer</b> — independent second opinion, different vendor on purpose</td></tr>
+<tr><td><code>pro-coder</code></td><td>Gemini 3.1 Flash-Lite</td><td class="free">own daily bucket</td><td>Classifier / live-fact single-shot calls (kept off the driver's quota)</td></tr>
+<tr><td><code>cloud-brain</code> / <code>bedrock-brain</code></td><td>Gemini 3.5 Flash</td><td class="free">~20 req/day</td><td><b>The architect</b> — hardest reasoning + the only VISION seat</td></tr>
+<tr><td><code>free-flash / -flash3 / -flash25</code></td><td>Gemini buckets</td><td class="free">~20/day each</td><td>Fallback rungs — per-model quota, so each hop is fresh budget</td></tr>
+<tr><td><code>free-qwen</code></td><td>Qwen3 Coder 480B (OpenRouter :free)</td><td class="free">~50 req/day</td><td>4th-provider rung before anything paid</td></tr>
+<tr><td><code>opus-paid / haiku-paid / kimi-coder</code></td><td>Claude Opus 4.6 / Haiku 4.5 / Kimi K2.5 (Bedrock)</td><td class="paid">PAID</td><td>Escape hatches — bill only when named; opus is in NO fallback chain</td></tr>
+</table>
+<p>Seats are defined in <code>~/.serge/litellm.yaml</code>; the router hides them all behind one
+OpenAI-compatible endpoint, so the engine just asks for a model name.</p>
+
+<h2><span class="n">3</span>Decision tree — launching <code>serge</code></h2>
+<pre>
+$ serge [--cloud|--council|--terse|--auto|--yolo|--uncap]
+   |
+   |-- source ~/.serge/serge.env          (search keys, routing knobs, budgets)
+   |-- parse mode flags
+   |     --council -> append council.md system prompt, SERGE_REVIEW_ENFORCE=1
+   |     --terse   -> append lean.md output-discipline overlay
+   |     --auto    -> permission-mode acceptEdits   (auto-apply edits only)
+   |     --yolo    -> bypassPermissions + ENFORCE review hooks as compensation
+   |
+   |-- daily-spend cap check (~/.serge/monitor/.budget-capped)
+   |     capped?  --uncap given -> clear flag, re-baseline today's spend, go
+   |              else          -> explain the pause + how to resume, EXIT
+   |
+   |-- router health: GET localhost:4000/v1/models
+   |     down? -> start it, wait <=45s (LiteLLM cold boot ~30s):
+   |               Linux: systemctl --user start serge-router
+   |               no systemd (macOS / Git Bash / bare WSL): spawn litellm
+   |                 directly with router.env loaded -> monitor/router.log
+   |     still down? -> print fix commands, EXIT
+   |
+   '-- exec node dist/cli.mjs   with OPENAI_MODEL = local-coder   (default)
+                                 or bedrock-brain (--cloud)
+                                 [OPENAI_MODEL=&lt;seat&gt; overrides per session]
+</pre>
+
+<h2><span class="n">4</span>Decision tree — which brain answers this turn?</h2>
+<p>Re-evaluated on <b>every human turn</b> inside the engine's OpenAI shim
+(<code>openaiShim.ts</code>); injected <code>&lt;system-reminder&gt;</code> text is stripped before
+classifying so hidden context can't trigger escalation. Escalations hold for the whole
+tool loop, then flip back on the next easy turn.</p>
+<pre>
+ You send a prompt
+   |
+   v
+ [1] session started with --cloud? .....................> bedrock-brain (Gemini 3.5)
+   |
+ [2] message contains an IMAGE? ........................> SERGE_VISION_MODEL
+   |      (only the brain seat has vision)                (= bedrock-brain)
+   |
+ [3] live-fact question?  (scores, prices, weather,
+   |   news — cheap coders hallucinate current facts) ..> SERGE_LIVEFACT_MODEL
+   |                                                       (= cloud-brain)
+ [4] "hard task" classifier regex hits?
+   |   architecture / redesign / trade-offs / race
+   |   condition / deadlock / memory leak / root-cause /
+   |   security-critical / crypto / distributed txn ...
+   |   PLUS practical-debug signals: "still not working",
+   |   "error when", "keeps crashing", stack trace,
+   |   regression, build failure .......................> SERGE_CLASSIFIER_MODEL
+   |                                                       (= cloud-brain)
+ [5] otherwise — the usual ~90% .......................> local-coder (Mistral) [DEFAULT]
+
+ Reasoning depth (orthogonal): /effort low..xhigh
+   - seats in SERGE_THINKING_SEATS (opus/haiku-paid only) get native Anthropic
+     thinking budgets (xhigh = 16384 tokens)
+   - every other seat gets reasoning_effort (xhigh clamps to high);
+     Gemini/gpt-oss/Magistral honor it, Mistral Large ignores it (non-reasoner)
+</pre>
+
+<h2 class="pb"><span class="n">5</span>Fallback chains — when a seat 429s or dies mid-stream</h2>
+<p>Fallbacks fire <b>only on error</b> (throttle / 5xx / mid-stream drop). Chains hop
+<b>providers</b> — one account's outage or quota can never collapse a whole chain. Gemini free
+quota is per-model, so each Gemini bucket is a fresh ~20/day. Only the workhorse chain ends on a
+paid rung (Serge must not brick mid-task); everything else stays free and fails loudly.</p>
+<pre>
+ local-coder (Mistral Large)                                        THE WORKHORSE CHAIN
+   -> free-flash25 (Gemini 2.5 Flash) -> free-flash3 (Gemini 3 Flash)
+   -> free-flash (3.1 Flash-Lite)     -> free-qwen (OpenRouter :free)
+   -> haiku-paid (Bedrock, PAID — the only paid rung anywhere)
+
+ cloud-brain / bedrock-brain (Gemini 3.5)                           THE BRAIN CHAIN
+   -> free-flash3 -> free-flash25 -> free-flash -> local-coder
+      (Gemini buckets first — they drive agentic loops fine; NEVER Cerebras,
+       whose models hang Claude-Code-style tool loops — eval-verified)
+
+ qwen-coder (reviewer) -> pro-coder -> free-flash        opus-paid -> (nothing:
+ fast-coder (scout)    -> free-flash -> free-scout        fails loudly rather
+ think-coder (reasoner)-> free-brain -> pro-coder         than bill silently)
+</pre>
+
+<h2><span class="n">6</span>Decision tree — end of turn (the Stop pipeline)</h2>
+<p>Two Stop hooks run in order (<code>settings.json</code>). Exit code 2 from a hook <b>blocks the
+stop</b> and feeds its message back to Serge — that's how the hive forces itself to fix things.</p>
+<pre>
+ Serge tries to end its turn
+   |
+   v
+ [A] continue-on-unfinished.sh          THE ANTI-STALL CHECK
+   |   transcript claims ongoing work ("let me check...") but no tool ran,
+   |   or claims "done" with zero tools used?
+   |      YES -> exit 2: "finish the job" (anti-loop cap; disable:
+   |             SERGE_AUTOCONTINUE_DISABLE)          -> Serge keeps working
+   |      no  -> continue
+   v
+ [B] stop-checks.sh  — one process, three stages:
+   |
+   |  STAGE 1: VERIFY (free, deterministic — verify-on-stop.sh)
+   |    typecheck + lint + hygiene greps (debug lines, merge markers,
+   |    .only tests) on files edited this turn
+   |      FAIL + enforce -> exit 2, Serge fixes, re-runs ONCE
+   |                        (repeat failures land in the reflexion log)
+   |      hard fail      -> SKIP the review (code is about to change)
+   |
+   |  STAGE 2: REVIEW (free AI — review-on-stop.sh)
+   |    qwen-coder (gpt-oss, DIFFERENT VENDOR) reads the turn's diff
+   |      BLOCKING bug + enforce (--council/--yolo) -> brain seat writes a
+   |                        fix plan -> exit 2 -> Serge applies it, ONCE
+   |      nits / clean   -> advisory note only
+   |
+   |  STAGE 3: GATE (only if Serge's OWN brain files changed — gate-on-stop.sh)
+   |    files in SERGE_GATE_HASH_GLOBS (constitution, council, agents) hashed;
+   |    changed? -> run the golden-task eval suite vs baseline
+   |      regression -> exit 2: revert-or-justify   (the self-edit ratchet;
+   |                    a PreToolUse hook also gates constitution WRITES)
+   v
+ [C] turn ends -> reflexion-log.sh appends lessons; statusline shows session cost
+</pre>
+
+<h2><span class="n">7</span>Session start — what Serge remembers</h2>
+<table>
+<tr><th>Loader (SessionStart hook)</th><th>Injects</th></tr>
+<tr><td><code>memory-load.sh</code></td><td>The memory INDEX (<code>memory/MEMORY.md</code>) — one line per durable fact; full fact files opened only when relevant. Add facts with <code>/remember</code>.</td></tr>
+<tr><td><code>progress-load.sh</code></td><td>Where it left off on ongoing tasks (also after /clear &amp; compaction).</td></tr>
+<tr><td><code>reflexion-load.sh</code></td><td>Past REPEATED verify failures — real tool output, so it stops tripping on the same stone.</td></tr>
+<tr><td><code>plan-pointer.sh</code></td><td>Pointer to a previously approved plan (<code>plan.md</code>) — plan-high / execute-cheap.</td></tr>
+<tr><td><code>notifications-load.sh</code></td><td>Pending items from the autonomous loops (<code>NOTIFICATIONS.md</code>).</td></tr>
+<tr><td><code>stale-binary-check.sh</code></td><td>Warns when the running build is older than the source (a /clear keeps old code!).</td></tr>
+</table>
+
+<h2><span class="n">8</span>Autonomous loops — Serge without prompts</h2>
+<p>Outer loops (<code>~/.serge/loops/</code>) prompt Serge <b>headlessly</b> on triggers; the human feeds
+queues and reviews results. Every loop follows the same shape:</p>
+<pre>
+ trigger (timer / path-watch) -> guards (kill switches, daily caps, locks)
+   -> build_prompt()  = the SENSOR (deterministic; often decides "nothing to do" for $0)
+   -> serge -p --yolo = the ACTUATOR (bounded: --max-turns, budget, timeout(1))
+   -> tripwire        (did Serge touch its OWN brain files? -> ALL loops hard-disable)
+   -> journal (one JSON line/run) -> post_run() (branches, inboxes, notifications)
+</pre>
+<table>
+<tr><th>Loop</th><th>Trigger</th><th>Sensor -> action</th></tr>
+<tr><td><code>eval-gate</code></td><td>nightly 03:30</td><td>Run the golden-task gate; on regression: diagnose, write findings, <b>propose</b> (never apply) constitution fixes.</td></tr>
+<tr><td><code>err-triage</code></td><td><code>serge-query-errors.log</code> grows</td><td>Classify new errors vs known causes → <code>triage-inbox.md</code>; new signatures get a draft memory note for human promotion.</td></tr>
+<tr><td><code>backlog</code></td><td>hourly (ships <b>disabled</b>)</td><td>Drain one <code>- [ ]</code> item from an enrolled project's BACKLOG.md in an isolated worktree on branch <code>loop/&lt;slug&gt;</code>; tests gate the ✔.</td></tr>
+</table>
+<div class="rule"><b>Rails:</b> global kill switch <code>touch ~/.serge/loops/DISABLED</code> (per-loop: <code>&lt;name&gt;/DISABLED</code>);
+per-loop + global daily run caps; every run bounded in turns, dollars and wall-clock; loops may only ever
+<b>propose</b> changes to the brain — the tripwire + eval ratchet enforce it.</div>
+
+<h2 class="pb"><span class="n">9</span>Memory &amp; self-improvement</h2>
+<pre>
+                       +--------------------------------------+
+   task completed ---->| reflexion-log.sh: what failed, what   |----+
+   verify failed ----->| worked (real tool output, not vibes)  |    |
+                       +--------------------------------------+    v
+   /remember <fact> --> ~/.serge/memory/<fact>.md  (index: MEMORY.md, loaded each session)
+                                                                    |
+   bigger lesson? ----> constitution-proposals.md   (HUMAN reviews & applies)
+                              |
+                              v
+        gate-on-constitution-edit.sh (PreToolUse) + nightly eval-gate loop:
+        any brain edit must NOT regress the 10 golden tasks vs baseline
+        (01 smoke ... 05 no-hardcoded-secret ... 07 honesty>approval ... 10 no-fabricated-data)
+</pre>
+<p>Net effect: Serge learns durable facts freely, but its <b>personality can only be changed
+through a regression-gated, human-approved path</b> — even by itself.</p>
+
+<h2><span class="n">10</span>Cost discipline</h2>
+<table>
+<tr><th>Mechanism</th><th>What it does</th></tr>
+<tr><td>All-free roster</td><td>Every working seat is a $0 tier; session cost line normally reads ≈ $0.00.</td></tr>
+<tr><td>Budget watchdog (5-min timer)</td><td>Pauses the router when paid (OpenRouter) daily spend crosses the cap (drop-in: $10/day). <code>serge --uncap</code> or UTC midnight resumes.</td></tr>
+<tr><td>Paid-seat tripwire</td><td>Any Bedrock escape-hatch use is flagged in <code>NOTIFICATIONS.md</code> — a paid seat can never fire silently.</td></tr>
+<tr><td>Quota gauge</td><td><code>quota.sh</code> feeds the statusline: today's brain-seat usage vs the ~20/day bucket.</td></tr>
+<tr><td>Free-tier scanner (weekly)</td><td>Probes providers for new/removed free models; proposes roster upgrades.</td></tr>
+<tr><td>Thinking tripwire (daily)</td><td>Probes that reasoning depth still actually fires on key seats (providers silently change APIs).</td></tr>
+</table>
+
+<h2><span class="n">11</span>Quick reference</h2>
+<div class="cols">
+<div>
+<h3>Modes &amp; flags</h3>
+<pre>
+serge                the free workhorse
+serge --cloud        start on the brain seat
+serge --council      architect plans, reviewer attacks
+serge --terse        lean answers (style only)
+serge --auto         auto-apply edits
+serge --yolo         hands-off; review hooks enforced
+serge --uncap        clear the daily-spend pause
+OPENAI_MODEL=&lt;seat&gt; serge    pin any seat
+/effort xhigh        max reasoning depth
+/cost /recap /hive /remember /deepthink
+</pre>
+</div>
+<div>
+<h3>Where things live</h3>
+<pre>
+~/.serge/CONSTITUTION.md  the personality
+~/.serge/litellm.yaml                seats + fallbacks
+~/.serge/settings.json               hook wiring
+~/.serge/stop-checks.sh              verify->review->gate
+~/.serge/loops/                      autonomous loops
+~/.serge/memory/                     what Serge remembers
+~/.serge/router.env serge.env        THE ONLY KEY FILES
+~/programs/serge-0.1.0/              engine (fork) + wrapper
+</pre>
+</div>
+</div>
+
+<div class="rule"><b>In one line:</b> a free workhorse does the work, a second vendor checks it for free,
+the scarce deep brain is summoned only for the genuinely hard 10% — and the whole hive runs on $0.</div>
+
+<p class="foot">Generated 2026-07-11 from the live install (roster of 2026-07-10). Source: <code>docs/how-serge-works.html</code> — edit and re-render with the command in the file header. Companion docs: <code>serge-0.1.0/SERGE.md</code> (full reference), <code>serge-0.1.0/HOW_SERGE_WORKS.txt</code> (plain-text map), <code>dot-serge/loops/README.md</code> (loops).</p>
+
+</body>
+</html>

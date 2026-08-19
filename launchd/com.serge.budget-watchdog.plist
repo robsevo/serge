@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Serge daily-spend watchdog — macOS equivalent of serge-budget-watchdog.timer
+     (every 5 minutes; cap matches the systemd drop-in's $10/day). -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.serge.budget-watchdog</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>exec __HOME__/.serge/budget-watchdog.sh</string>
+  </array>
+  <key>StartInterval</key><integer>300</integer>
+  <key>RunAtLoad</key><true/>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>SERGE_DAILY_CAP_USD</key><string>10</string>
+    <key>PATH</key><string>__HOME__/.local/bin:/opt/homebrew/opt/coreutils/libexec/gnubin:/opt/homebrew/bin:/usr/local/opt/coreutils/libexec/gnubin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>StandardOutPath</key><string>__HOME__/.serge/monitor/budget-watchdog.log</string>
+  <key>StandardErrorPath</key><string>__HOME__/.serge/monitor/budget-watchdog.log</string>
+</dict>
+</plist>

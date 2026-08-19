@@ -1,0 +1,9 @@
+[Unit]
+Description=Hourly serge backlog drain loop (one BACKLOG.md item per run)
+
+[Timer]
+OnCalendar=*-*-* *:40:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,7 @@
+[Unit]
+Description=Serge thinking tripwire (daily probe that reasoning depth still fires on key seats)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.serge/thinking-tripwire.sh

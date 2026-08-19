@@ -1,0 +1,91 @@
+name: Bug report
+description: Something in the brain (a hook, the router config, the installer) misbehaves.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before you start:** this repository is the configuration layer, not the
+        CLI engine (see README §2). If the engine itself crashes, or a model gives
+        a bad answer, that belongs with whoever publishes your engine — not here.
+
+        In scope: hooks, subagents, skills, slash commands, `litellm.yaml`,
+        service units, `install.sh`.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+      placeholder: |
+        Expected: the Stop pipeline to stay quiet on a clean turn.
+        Got: it blocked and re-ran the turn.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: |
+        Hooks read JSON on stdin, so the most useful report drives the hook
+        directly and shows the output. For example:
+        `printf '{"session_id":"t","last_assistant_message":"done","cwd":"/tmp"}' | bash ~/.serge/stop-checks.sh; echo "exit=$?"`
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: component
+    attributes:
+      label: Which file
+      description: The hook, skill, agent or config involved, if you know.
+      placeholder: dot-serge/stop-checks.sh
+    validations:
+      required: false
+
+  - type: input
+    id: engine
+    attributes:
+      label: Engine (name and version)
+      description: |
+        Required, because this repo does not ship one and behaviour differs
+        between engines. Whatever `--version` prints.
+      placeholder: "claude-code 2.x / my-fork 1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows (WSL2)
+        - Windows (native Git Bash)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: router
+    attributes:
+      label: Router state (if the problem involves models)
+      description: |
+        Output of `curl -s http://localhost:4000/v1/models | head` and, if
+        relevant, `~/.serge/seat-health.sh`. A seat can return HTTP 200 while a
+        different model answers, so status codes alone are not evidence.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have removed API keys and personal paths from anything I pasted.
+          required: true
+        - label: This is about the brain in this repo, not the engine or the model's answer.
+          required: true

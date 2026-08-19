@@ -1,0 +1,7 @@
+[Unit]
+Description=Serge daily-spend watchdog (stops the router when OpenRouter usage_daily crosses the cap)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.serge/budget-watchdog.sh

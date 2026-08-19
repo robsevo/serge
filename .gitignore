@@ -1,0 +1,72 @@
+# ─── Secrets. Never commit these. ───────────────────────────────────────────
+# The repo ships *.template files with blank values. Installing generates the
+# real ones next to them; these rules make sure the real ones stay local.
+router.env
+serge.env
+settings.json
+*.key
+*.pem
+.env
+.env.*
+!*.template
+
+# ─── Per-machine state Serge generates at runtime ───────────────────────────
+# None of this is meaningful on another machine, and some of it contains the
+# full text of your sessions.
+history.jsonl
+projects/
+file-history/
+backups/
+cache/
+monitor/
+todos/
+statsig/
+shell-snapshots/
+*.log
+NOTIFICATIONS.md
+last-*.md
+plan.md
+
+# ─── Your accumulated knowledge, not the framework ──────────────────────────
+# MEMORY.md ships as an empty index; the fact files it points at are yours.
+memory/*.md
+!memory/MEMORY.md
+skills/_learnings/*.jsonl
+loops/backlog/projects.conf
+evals/
+
+# ─── The engine ─────────────────────────────────────────────────────────────
+# See README "Installing the engine". The CLI is a derivative of Anthropic's
+# Claude Code and is NOT redistributable — it must never be committed here.
+engine/
+serge-*/
+dist/
+node_modules/
+*.mjs
+!install.sh
+
+# …but these rules are shaped to catch an ENGINE, and they were also catching
+# the brain's own files: `*.mjs` hid the gamedev skill's playtest harness and
+# its two template modules, and `serge-*/` hid the budget watchdog's systemd
+# drop-in. The build shipped all four; git would have silently committed none
+# of them, so the published repo would carry a broken skill and a missing cap
+# config while every gate still reported a complete build.
+#
+# Re-included by exact area, never blanket: an engine bundle cannot appear
+# under dot-serge/skills/ or in a systemd drop-in directory, so these
+# exceptions cannot let one through. make-public-release.sh now fails the build
+# if any shipped file is git-ignored, so this cannot silently regress.
+!dot-serge/skills/**/*.mjs
+!systemd/serge-*.service.d/
+# Same rule, third victim (2026-08-15): `*.mjs` also hid bin/import-specifier.mjs
+# and its test — launcher helpers that ship and are needed. bin/ holds loose
+# helper modules; an engine bundle lands in dist/, which is ignored separately
+# just above, so this exception cannot let one through either.
+!bin/*.mjs
+
+# ─── Build noise ────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+.godot/
+.DS_Store
+Thumbs.db

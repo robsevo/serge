@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Serge autonomous loop: error triage on log growth (macOS equivalent of
+     serge-loop@err-triage.path — WatchPaths fires when the file changes;
+     the loop itself debounces 10 min and is capped per day). -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.serge.loop-err-triage</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>exec __HOME__/.serge/loops/run-loop.sh err-triage</string>
+  </array>
+  <key>WatchPaths</key>
+  <array><string>__HOME__/.serge/serge-query-errors.log</string></array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>__HOME__/.local/bin:/opt/homebrew/opt/coreutils/libexec/gnubin:/opt/homebrew/bin:/usr/local/opt/coreutils/libexec/gnubin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>StandardOutPath</key><string>__HOME__/.serge/loops/err-triage/stderr.log</string>
+  <key>StandardErrorPath</key><string>__HOME__/.serge/loops/err-triage/stderr.log</string>
+</dict>
+</plist>

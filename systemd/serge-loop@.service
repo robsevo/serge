@@ -1,0 +1,13 @@
+[Unit]
+Description=Serge autonomous loop: %i
+# The serge wrapper self-heals the router (starts serge-router.service and
+# waits for LiteLLM cold-boot), so no hard dependency is declared here.
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.serge/loops/run-loop.sh %i
+# eval-gate's deterministic gate sweep (10 golden tasks) can run long before
+# the serge call even starts; this must cover sweep + one bounded serge run.
+TimeoutStartSec=7200
+Nice=10

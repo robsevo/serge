@@ -1,0 +1,19 @@
+[Unit]
+Description=Serge seat health (flag seats whose calls 200 but are answered by a fallback)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.serge/seat-health.sh --quiet
+# Exit 1 means the check RAN and found something (a drifting / down / capped
+# seat). That is a roster problem, not a service problem: the finding is
+# delivered through ~/.serge/NOTIFICATIONS.md, which the SessionStart loader
+# surfaces. Without this line every routine finding marked the unit `failed`,
+# so the one state that should mean "the checker is broken" meant nothing —
+# and on 2026-08-14 a single expected CTXFAIL had the health daemon reading as
+# dead for 8 hours. Exit 3 (pyyaml missing, litellm.yaml unreadable) is a real
+# failure and still shows as `failed`; so does exit 2 (bad usage).
+SuccessExitStatus=1
+
+[Install]
+WantedBy=timers.target

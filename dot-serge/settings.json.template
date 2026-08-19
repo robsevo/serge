@@ -1,0 +1,777 @@
+{
+  "permissions": {
+    "allowBypassPermissionsMode": true,
+    "additionalDirectories": [
+      "__HOME__/programs/serge-0.1.0"
+    ]
+  },
+  "model": "local-coder",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/memory-load.sh",
+            "timeout": 10,
+            "statusMessage": "Loading Serge memory"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/progress-load.sh",
+            "timeout": 10,
+            "statusMessage": "Loading task progress"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/reflexion-load.sh",
+            "timeout": 10,
+            "statusMessage": "Loading reflexion memory"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/plan-pointer.sh",
+            "timeout": 10,
+            "statusMessage": "Checking for saved plan"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/notifications-load.sh",
+            "timeout": 10,
+            "statusMessage": "Checking loop notifications"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/repo-card.sh",
+            "timeout": 15,
+            "statusMessage": "Reading repo shape"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/reasoning-overlay.sh",
+            "timeout": 10,
+            "statusMessage": "Loading reasoning method"
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/compact-survival.sh",
+            "timeout": 15,
+            "statusMessage": "Restoring facts"
+          }
+        ]
+      },
+      {
+        "matcher": "clear|resume|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/stale-binary-check.sh",
+            "timeout": 10,
+            "statusMessage": "Checking binary freshness"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/guard-integrity.sh",
+            "statusMessage": "Loading Serge memory"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/auto-consult.sh",
+            "timeout": 90,
+            "statusMessage": "Consulting reasoning seat"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/research-directive.sh",
+            "timeout": 10,
+            "statusMessage": "Checking research signals"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/ambiguity-directive.sh",
+            "timeout": 10,
+            "statusMessage": "Checking for ambiguity"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/logic-directive.sh",
+            "timeout": 10,
+            "statusMessage": "Checking logic signals"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/complexity-directive.sh",
+            "timeout": 10,
+            "statusMessage": "Checking complexity"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/docs-directive.sh",
+            "statusMessage": "Consulting reasoning seat"
+          }
+        ],
+        "matcher": "*"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/investigate-directive.sh",
+            "statusMessage": "Consulting reasoning seat"
+          }
+        ],
+        "matcher": "*"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/graph-directive.sh",
+            "timeout": 10,
+            "statusMessage": "Checking orchestration"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/skill-learn.sh",
+            "timeout": 10,
+            "statusMessage": "Capturing skill learnings"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/stop-notes-feedback.sh",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/eyes-directive.sh",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/reference-resolve.sh",
+            "timeout": 15,
+            "statusMessage": "Resolving named paths"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/discovery-delegate.sh",
+            "timeout": 15,
+            "statusMessage": "Checking discovery signals"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/reasoning-overlay.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/repo-card.sh",
+            "timeout": 15,
+            "statusMessage": "Checking project changes"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/swarm-brief.sh",
+            "timeout": 10,
+            "statusMessage": "Checking swarm mode"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "scout|researcher|Explore",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/subagent-refs-gate.sh",
+            "timeout": 15,
+            "statusMessage": "Checking subagent sources"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/seat-notes.sh",
+            "timeout": 10,
+            "statusMessage": "Saving what this seat learned"
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/task-evidence-gate.sh",
+            "timeout": 20,
+            "statusMessage": "Checking task evidence"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|agent_needs_input|idle_prompt|agent_completed",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/notify-desk.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/compact-survival.sh",
+            "timeout": 15,
+            "statusMessage": "Recording what compaction kept"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/compact-survival.sh",
+            "timeout": 20,
+            "statusMessage": "Saving facts for compaction"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/repo-card.sh",
+            "timeout": 15,
+            "statusMessage": "Grounding subagent"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/seat-notes.sh",
+            "timeout": 10,
+            "statusMessage": "Loading seat notes"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/swarm-doctrine.sh",
+            "timeout": 10,
+            "statusMessage": "Loading swarm doctrine"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/vague-delete-gate.sh",
+            "statusMessage": "Checking eval baseline"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/gate-on-constitution-edit.sh",
+            "timeout": 20,
+            "statusMessage": "Checking eval baseline"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/path-reality-gate.sh",
+            "timeout": 15,
+            "statusMessage": "Checking target path"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/subagent-brief-gate.sh",
+            "timeout": 10,
+            "statusMessage": "Checking subagent brief"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/tool-dedupe-guard.sh",
+            "timeout": 10,
+            "statusMessage": "Checking duplicate calls"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/semgrep-scan.sh",
+            "timeout": 60,
+            "statusMessage": "Semgrep scanning edited file"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/algo-gate.sh",
+            "timeout": 30,
+            "statusMessage": "Checking complexity"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/doc-reality-gate.sh",
+            "timeout": 30,
+            "statusMessage": "Checking complexity"
+          }
+        ]
+      },
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/persist-plan.sh",
+            "timeout": 10,
+            "statusMessage": "Saving plan to plan.md"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/tool-repeat-guard.sh",
+            "timeout": 10,
+            "statusMessage": "Checking repeat loops"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/tool-dedupe-guard.sh",
+            "timeout": 5,
+            "statusMessage": "Checking duplicate calls"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/stop-checks.sh",
+            "timeout": 480,
+            "statusMessage": "Running stop checks"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/curiosity-capture.sh",
+            "statusMessage": "Running stop checks"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/hooks/on-stop-failure.sh",
+            "timeout": 120,
+            "statusMessage": "Assessing stop failure"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__SERGE_HOME__/tool-dedupe-guard.sh",
+            "timeout": 5,
+            "statusMessage": "Checking duplicate calls"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "__SERGE_HOME__/statusline.sh"
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true
+  },
+  "spinnerVerbs": {
+    "mode": "replace",
+    "verbs": [
+      "Contemplating",
+      "Deliberating",
+      "Ruminating",
+      "Cogitating",
+      "Triangulating",
+      "Synthesizing",
+      "Distilling",
+      "Untangling",
+      "Discerning",
+      "Calibrating",
+      "Crystallizing",
+      "Converging",
+      "Reasoning",
+      "Inferring",
+      "Serging",
+      "Surging",
+      "Hive-minding",
+      "Caucusing",
+      "Scouting",
+      "Razzmatazzing",
+      "Razzle-dazzling",
+      "Boondoggling",
+      "Flibbertigibbeting",
+      "Lollygagging",
+      "Skedaddling",
+      "Discombobulating",
+      "Bamboozling",
+      "Shenaniganing",
+      "Noodling",
+      "Tinkering",
+      "Wrangling",
+      "Finagling",
+      "Hullaballooing",
+      "Tomfoolering",
+      "Whatchamacalliting",
+      "Dilly-dallying",
+      "Gallivanting",
+      "Moseying",
+      "Gitifying",
+      "Bikeshedding",
+      "Yak-shaving",
+      "Rubber-ducking",
+      "Hornswoggling",
+      "Absquatulating",
+      "Bumfuzzling",
+      "Cattywampusing",
+      "Flapdoodling",
+      "Gobbledygooking",
+      "Collywobbling",
+      "Skullduggering",
+      "Kerfuffling",
+      "Hocus-pocusing",
+      "Argy-bargying",
+      "Codswalloping",
+      "Balderdashing",
+      "Higgledy-piggledying",
+      "Snollygostering",
+      "Flummoxing",
+      "Galumphing",
+      "Persnicketing",
+      "Pettifogging",
+      "Malarkeying",
+      "Hootenannying",
+      "Do-si-do-ing",
+      "Hoedowning",
+      "Nerd-sniping",
+      "Vibe-checking",
+      "Embiggening",
+      "Cromulent-ifying",
+      "Procrastibaking",
+      "Befuddling",
+      "Flabbergasting",
+      "Bamboozle-flummoxing",
+      "Kvetching",
+      "Doohickeying",
+      "Thingamajigging",
+      "Shitposting",
+      "Clusterfucking",
+      "Faffing-about",
+      "Arsing-about",
+      "Buggering-about",
+      "Bollocksing",
+      "Shitcanning",
+      "Pissing-about",
+      "Bullshitting",
+      "Dicking-around",
+      "Shit-shoveling",
+      "Horse-shitting",
+      "Mucking-about",
+      "Balls-upping",
+      "Hell-raising",
+      "Jackassing",
+      "Shit-wrangling",
+      "Goddamn-noodling",
+      "Crap-juggling",
+      "Hot-damning",
+      "Fuck-compiling",
+      "Fuck-bootstrapping",
+      "Fuck-crunching",
+      "Fuck-hashing",
+      "Fuck-debugging",
+      "Fuck-refactoring",
+      "Fuck-deliberating",
+      "Fuck-architecting",
+      "Fuck-computing",
+      "Fuck-percolating",
+      "Fuck-reconciling",
+      "Fuck-marinating",
+      "Fuck-reticulating",
+      "Fuck-rebasing",
+      "Shit-stirring",
+      "Shit-talking",
+      "Shit-mixing",
+      "Gobshite-ing",
+      "Numptying",
+      "Plonkering",
+      "Wazzocking",
+      "Muppeting",
+      "Knobheading",
+      "Pillocking",
+      "Wind-up-merchanting",
+      "Bell-ending",
+      "Wankstering",
+      "Twattering",
+      "Arse-about-facing",
+      "Knobbing-about",
+      "Tit-about-ing",
+      "Bollock-dropping",
+      "Shite-hawking",
+      "Gormless-arsing",
+      "Catastrophizing",
+      "Decomposing",
+      "Disinterring",
+      "Dissociating",
+      "Doomscrolling",
+      "Embalming",
+      "Eulogizing",
+      "Exhuming",
+      "Flatlining",
+      "Gravedigging",
+      "Haunting",
+      "Mummifying",
+      "Necromancing",
+      "Ossifying",
+      "Reanimating",
+      "Spiraling"
+    ]
+  },
+  "spinnerStyle": "cat",
+  "spinnerTipsOverride": {
+    "excludeDefault": true,
+    "tips": [
+      "serge --cloud starts the session on the brain seat \u2014 strongest free model, ~20 req/day",
+      "serge --council convenes the hive: architect plans, reviewer attacks the plan",
+      "serge --auto auto-accepts edits; serge --yolo is hands-off \"auto mode\" (no AI classifier on 3P \u2014 inspect risky calls)",
+      "/remember <fact> saves something durable to Serge's memory",
+      "Serge remembers you across sessions \u2014 facts live in ~/.serge/memory/",
+      "OPENAI_MODEL=qwen-coder serge swaps the model for one session",
+      "/effort xhigh dials up reasoning on every seat that can think",
+      "The architect seat is the only expensive one \u2014 gated to the hard 10%",
+      "Plentiful by default: Mistral does the work, the brain seat only when it earns it",
+      "A reviewer second opinion costs cents \u2014 Serge uses it freely",
+      "Scout finds things in unfamiliar code so the brain doesn't have to",
+      "RETHINK from the reviewer is the only thing that buys a second architect pass",
+      "The hive minds the details",
+      "Truth over speed \u2014 a confident wrong answer is the only real failure",
+      "It compiles. Correctness is between you and your gods.",
+      "Every bug you fix is two more in a trench coat, waiting their turn.",
+      "Tests are green. Confidence remains unearned.",
+      "Technical debt is a loan from a more tired, future you \u2014 and the interest compounds.",
+      "There are no bad commits, only future git-blame archaeology.",
+      "git push --force: speak now, or forever lose your history.",
+      "Hope is not a strategy. It is, however, all we have at 3am.",
+      "Refactor (v.): to break working code in exciting new ways.",
+      "Yak fully shaved. Original task: forgotten, possibly never real.",
+      "Works on my machine \u2014 I'll overnight you the machine.",
+      "We're all one rm -rf from a clean slate.",
+      "TODO: the two saddest words in any codebase.",
+      "Use /clear when switching topics \u2014 before the context window fills up and Serge starts forgetting your name, then its own.",
+      "Plan Mode before a risky change: measure twice, cut once, write the post-mortem never.",
+      "Commit often. The change you didn't save is always the one that flatlines at 2am.",
+      "/btw asks a quick side question without interrupting the s\u00e9ance Serge is currently conducting.",
+      "serge --resume revives a dead conversation. Necromancy, but billable.",
+      "Double-tap esc to rewind the conversation \u2014 the time machine your prod database will never have."
+    ]
+  },
+  "effortLevel": "xhigh",
+  "skipDangerousModePermissionPrompt": true,
+  "skipFullAccessModePermissionPrompt": true,
+  "includeCoAuthoredBy": false,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}

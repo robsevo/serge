@@ -1,0 +1,11 @@
+[Unit]
+Description=Trigger serge error-triage when serge-query-errors.log changes
+
+[Path]
+PathModified=%h/.serge/serge-query-errors.log
+# Activates serge-loop@err-triage.service (template instance, name-matched).
+# The loop itself debounces (10 min) and is capped per day; systemd won't
+# re-trigger while the activated service is still running.
+
+[Install]
+WantedBy=default.target

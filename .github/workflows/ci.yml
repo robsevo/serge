@@ -1,0 +1,210 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: Syntax and config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Every shell script parses
+        run: |
+          fail=0
+          while IFS= read -r f; do
+            bash -n "$f" || { echo "::error file=$f::bash -n failed"; fail=1; }
+          done < <(find . -name '*.sh' -not -path './.git/*')
+          exit $fail
+
+      - name: ShellCheck (errors only)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          # Severity=error keeps this a correctness gate, not a style argument.
+          find . -name '*.sh' -not -path './.git/*' -print0 \
+            | xargs -0 shellcheck --severity=error
+
+      - name: JSON and YAML are valid
+        run: |
+          python3 - <<'PY'
+          import json, sys, os
+          import yaml
+          # os.walk, NOT glob: glob's ** never descends into dot-directories, so
+          # the old version silently skipped all of .github/ — this workflow was
+          # not validating itself. A config checker with a blind spot over the
+          # config directory is worse than none, because it reports success.
+          bad = 0
+          checked = {"json": 0, "yaml": 0}
+          for root, dirs, files in os.walk("."):
+              dirs[:] = [d for d in dirs if d not in (".git", "node_modules")]
+              for name in files:
+                  p = os.path.join(root, name)
+                  try:
+                      if name.endswith((".json", ".json.template")):
+                          json.load(open(p)); checked["json"] += 1
+                      elif name.endswith((".yml", ".yaml")):
+                          list(yaml.safe_load_all(open(p))); checked["yaml"] += 1
+                  except Exception as e:
+                      kind = "JSON" if name.endswith((".json", ".json.template")) else "YAML"
+                      print(f"::error file={p}::invalid {kind}: {e}"); bad = 1
+          print(f"checked {checked['json']} JSON and {checked['yaml']} YAML files")
+          # A checker that silently matches nothing is a checker that always passes.
+          if checked["json"] == 0 or checked["yaml"] == 0:
+              print("::error::found no JSON or no YAML to check - the walk is broken"); bad = 1
+          sys.exit(bad)
+          PY
+
+      - name: Skill directory name matches its frontmatter
+        run: |
+          fail=0
+          for d in dot-serge/skills/*/; do
+            n=$(basename "$d")
+            case "$n" in _*) continue ;; esac          # _learnings is a journal, not a skill
+            f="$d/SKILL.md"
+            if [ ! -f "$f" ]; then
+              echo "::error::$n has no SKILL.md"; fail=1; continue
+            fi
+            got=$(awk 'NR==1&&/^---/{i=1;next} i&&/^---/{exit} i' "$f" \
+                  | sed -n 's/^name:[[:space:]]*//p' | head -1 | tr -d '"'"'"'')
+            [ "$got" = "$n" ] || { echo "::error file=$f::name '$got' != directory '$n'"; fail=1; }
+          done
+          exit $fail
+
+  no-secrets:
+    name: No credentials or personal data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan the tree
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+          # Shapes, not names: a list of known-bad literals is always one project behind.
+          pats = {
+            "key-shaped string": re.compile(r"\b(sk-[A-Za-z0-9]{16,}|AIza[A-Za-z0-9_\-]{20,}|tvly-[A-Za-z0-9]{10,}|ghp_[A-Za-z0-9]{20,})"),
+            "AWS access key id": re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+            "private key block": re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
+            "absolute home path": re.compile(r"/(?:home|Users)/(?!runner\b)[a-z][a-z0-9_-]{1,31}/"),
+            "debug session id": re.compile(r"\bsession [0-9a-f]{8}\b", re.I),
+          }
+          bad = 0
+          for dp, dn, fn in os.walk("."):
+              if "/.git" in dp: continue
+              for f in fn:
+                  p = os.path.join(dp, f)
+                  try: data = open(p, encoding="utf-8", errors="ignore").read()
+                  except Exception: continue
+                  for label, rx in pats.items():
+                      m = rx.search(data)
+                      if m:
+                          print(f"::error file={p}::{label}: {m.group(0)[:40]}")
+                          bad = 1
+          sys.exit(bad)
+          PY
+
+      - name: Env templates carry no values
+        run: |
+          python3 - <<'PY'
+          import re, sys, glob
+          bad = 0
+          secretish = re.compile(r"(_API_KEY|_TOKEN|_SECRET|_PASSWORD|_CREDENTIAL|_ACCESS_KEY)$")
+          for p in glob.glob("dot-serge/*.env.template"):
+              for i, line in enumerate(open(p), 1):
+                  line = line.strip()
+                  if not line or line.startswith("#") or "=" not in line: continue
+                  k, _, v = line.partition("=")
+                  if secretish.search(k.strip()) and v.strip().strip('"').strip("'"):
+                      print(f"::error file={p},line={i}::{k.strip()} ships with a value")
+                      bad = 1
+          sys.exit(bad)
+          PY
+
+  hooks:
+    name: Hooks fail open
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every wired hook exits 0 on empty and on malformed input
+        run: |
+          # A hook that cannot do its job must get out of the way, never block a
+          # turn. The list comes from settings.json so operator CLIs and daemons
+          # (seat-health.sh, webshot.sh, ...) are not held to the hook contract.
+          mapfile -t hooks < <(python3 - <<'PY'
+          import json
+          d = json.load(open("dot-serge/settings.json.template"))
+          seen = []
+          for ev, arr in d.get("hooks", {}).items():
+              for m in arr:
+                  for hk in m.get("hooks", []):
+                      c = hk.get("command", "")
+                      if c and c not in seen: seen.append(c)
+          for c in seen: print(c)
+          PY
+          )
+          echo "checking ${#hooks[@]} wired hooks"
+          fail=0
+          for cmd in "${hooks[@]}"; do
+            # In the template the command is "__SERGE_HOME__/foo.sh"; the
+            # installer rewrites that to the real path at install time. Strip
+            # either shape so this works on the template and on an installed copy.
+            rel="${cmd#__SERGE_HOME__/}"
+            rel="${rel##*/.serge/}"
+            f="dot-serge/$rel"
+            [ -f "$f" ] || { echo "::error::wired hook missing from the repo: $cmd"; fail=1; continue; }
+            for payload in '' 'not json at all' '{}'; do
+              printf '%s' "$payload" | timeout 30 bash "$f" >/dev/null 2>&1
+              rc=$?
+              # 0 = fine. 2 = a deliberate block, which is a legitimate hook
+              # outcome. Anything else is a crash.
+              if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then
+                echo "::error file=$f::exit $rc on payload '${payload:0:20}'"; fail=1
+              fi
+            done
+          done
+          exit $fail
+
+  install:
+    name: Installer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dry run against a throwaway HOME
+        run: |
+          eng=$(mktemp -d); mkdir -p "$eng/bin"
+          printf '#!/usr/bin/env bash\necho "test engine"\n' > "$eng/bin/serge"
+          chmod +x "$eng/bin/serge"
+          HOME=$(mktemp -d) bash install.sh --engine "$eng" --dry-run
+
+      - name: Real install leaves no placeholders and mode-600 credentials
+        run: |
+          eng=$(mktemp -d); mkdir -p "$eng/bin"
+          printf '#!/usr/bin/env bash\necho "test engine"\n' > "$eng/bin/serge"
+          chmod +x "$eng/bin/serge"
+          # A hosted runner has no litellm, and a real (non-dry) install refuses
+          # to proceed without it — correctly, since a router that cannot start
+          # is not an install. But this test asserts what the installer WRITES:
+          # resolved placeholders and mode-600 credentials. Stubbing the binary
+          # satisfies the prerequisite check without installing the proxy stack
+          # to make a filesystem assertion. Same reasoning as the stub engine.
+          stub=$(mktemp -d)
+          printf '#!/usr/bin/env bash\necho "litellm stub"\n' > "$stub/litellm"
+          chmod +x "$stub/litellm"
+          export PATH="$stub:$PATH"
+          home=$(mktemp -d)
+          HOME="$home" bash install.sh --engine "$eng"
+          test -d "$home/.serge" || { echo "::error::install produced no ~/.serge"; exit 1; }
+          for f in router.env serge.env; do
+            perm=$(stat -c '%a' "$home/.serge/$f")
+            [ "$perm" = "600" ] || { echo "::error::$f is mode $perm, expected 600"; exit 1; }
+          done
+          if grep -rlq "__SERGE_HOME__\|__ENGINE__" "$home/.serge" 2>/dev/null; then
+            echo "::error::unresolved placeholders remain"; exit 1
+          fi
+          echo "installed $(find "$home/.serge" -type f | wc -l) files"

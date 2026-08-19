@@ -1,0 +1,7 @@
+[Unit]
+Description=Serge free-tier scanner (weekly probe for new/removed free models across providers)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.serge/free-tier-scanner.sh

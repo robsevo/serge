@@ -1,0 +1,12 @@
+[Unit]
+Description=Run the Serge seat health check daily
+
+[Timer]
+# Late morning: after the Gemini free-tier daily quota has rolled over, so a
+# 429-exhausted rung reads as recovered rather than as a standing fault.
+OnCalendar=*-*-* 11:20:00
+RandomizedDelaySec=20min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
