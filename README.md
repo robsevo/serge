@@ -7,6 +7,11 @@ and a constitution you write yourself.
 
 It runs on free model tiers. A full working setup costs **$0/month**.
 
+<p align="center">
+  <img src="docs/screenshots/serge-tui.png" width="600"
+       alt="Serge at startup: the router's three seats — code, review and brain — an endpoint routing local to cloud, and a ready prompt.">
+</p>
+
 > **Serge is not a contributor to your code.** Git co-authorship ships off. It
 > will not add itself as a `Co-Authored-By` trailer, it will not appear in your
 > commit history, and it will not show up in your repo's contributor list. That
